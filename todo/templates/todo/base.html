@@ -1,0 +1,100 @@
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <link rel="stylesheet" href="http://fortawesome.github.io/Font-Awesome/assets/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+ <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+{% load static %}
+
+ <link rel="icon" type="image/png" href="{% static 'todo/todo.png' %}" sizes="96x96">
+<link rel="stylesheet" type="text/css" href="{% static 'todo/css/main.css' %}">
+<!-- navbar -->
+ <nav class="navbar navbar-expand-lg relative ">
+ <a class="navbar-brand " href="{% url 'home' %}"><img src="{% static 'todo/logo.png' %}" height="51px">&nbsp &nbsp  <b clss="nav-link">Sticky Memo</b></a>
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+ <span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse " id="navbarSupportedContent">     <ul class="navbar-nav mr-4">
+ <li class="nav-item">
+     <a class="nav-link" data-value="about" href="{% url 'abouttodo' %}">About</a>        </li>
+<li class="nav-item">
+    <a class="nav-link " data-value="portfolio"href="{% url 'portfoliotodo' %}">Portfolio</a>
+ </li>
+
+ {% if user.is_authenticated %}
+ <li class="nav-item">
+    <a class="nav-link " data-value="blog" href="{% url 'createtodo' %}">Create</a>         </li>
+<li class="nav-item">
+   <a class="nav-link " data-value="team" href="{% url 'currenttodos' %}">Current</a>       </li>
+<li class="nav-item">
+ <a class="nav-link " data-value="contact" href="{% url 'completedtodos' %}">Completed</a>       </li>
+  <li class="nav-item "><a class="nav-link " data-value="blog" href="#">Hello {{user.username}}</a></li>
+ <li class="nav-item">
+  <a class="nav-link " data-value="contact" href="{% url 'completedtodos' %}"><form  action="{% url 'logoutuser' %}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Logout</button>
+  </form></a>       </li>
+</ul>
+
+ <!--
+ <a href="{% url 'createtodo' %}">Create</a>
+ <a href="{% url 'currenttodos' %}">Current</a>
+ <a href="{% url 'completedtodos' %}">Completed</a>
+ <form  action="{% url 'logoutuser' %}" method="POST">
+   {% csrf_token %}
+   <button type="submit">Logout</button>
+ </form> -->
+
+ {% else %}
+
+ <li class="nav-item">
+    <a class="nav-link " data-value="blog" href="{% url 'signupuser' %}">Sign Up</a>         </li>
+ <li class="nav-item">
+   <a class="nav-link " data-value="team" href="{% url 'loginuser' %}">Login</a>       </li>
+ <li class="nav-item">
+ <a class="nav-link " data-value="contact" href="{% url 'contacttodo' %}">Contact</a>       </li>
+ </ul>
+
+ <!-- <a href="{% url 'signupuser' %}">Sign Up</a>
+ <a href="{% url 'loginuser' %}">Login</a> -->
+
+ {% endif %}
+ <!-- <li class="nav-item">
+    <a class="nav-link " data-value="blog" href="#">Blog</a>         </li>
+<li class="nav-item">
+   <a class="nav-link " data-value="team" href="#">         Team</a>       </li>
+<li class="nav-item">
+ <a class="nav-link " data-value="contact" href="#">Contact</a>       </li>
+</ul> -->
+</div></nav>
+
+
+
+
+<!-- {% if user.is_authenticated %}
+
+Logged in as {{user.username}}
+<a href="{% url 'createtodo' %}">Create</a>
+<a href="{% url 'currenttodos' %}">Current</a>
+<a href="{% url 'completedtodos' %}">Completed</a>
+<form  action="{% url 'logoutuser' %}" method="POST">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+
+{% else %}
+<a href="{% url 'signupuser' %}">Sign Up</a>
+<a href="{% url 'loginuser' %}">Login</a>
+
+{% endif %} -->
+<div class="content overflow-auto" id="content" style="background-image: url('{% static 'todo/backgroundimage.png' %}');background-attachment: fixed;
+ background-size: cover;
+ background-position: center;">
+
+
+
+{% block content %}{% endblock %}
+</div>
+
+{% include 'todo/footer.html' %}

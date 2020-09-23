@@ -1,0 +1,19 @@
+{% extends 'todo/base.html' %}
+{% block content %}
+
+{% load crispy_forms_tags %}
+<div class="overlay">
+<div class="container">
+      <div class="row justify-content-center">
+        <div class="col-8">
+      {% if error %}    <h2 class="p-3 mb-2 bg-warning text-white">{{error}}</h2>
+      {% endif %}
+<h1>Sign up here!</h1>
+
+<form method="POST">
+  {% csrf_token %}
+{{form|crispy}}
+<button type="submit" class="btn btn-success">Sign Up</button>
+</form>
+</div></div></div></div>
+{% endblock %}

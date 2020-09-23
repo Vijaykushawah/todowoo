@@ -1,0 +1,86 @@
+Project creation-
+1.django-admin startproject todowoo -> cd todowoo
+2.python manage.py startapp todo
+3.python manage.py runserver
+4.python manage.py migrate
+
+Signup Form-
+1.open urls.py & add url for signup/
+2.create function in views.py then create template for html rendering
+3.from django.contrib.auth.forms import UserCreationForm  pass this form to html page
+4.{{form.as_p}}  and add submit button and add {%csrf_token%}
+
+Creating User-
+1.from django.contrib.auth.models import User
+2.
+3.create super user vijay Superuser@#123
+4.user=User.objects.create_user(request.POST['username'],password=request.POST['password1'])
+
+Exception handling-
+1.password didn't match show error msg pass value in dict and view it in html
+2.Integrity contraints-just see exception copy that & handle this in code 
+3.Now if user signedup then we need to forward request to some other page
+return redirect(currenttodos)
+view functions must have entries in urls.py
+
+Showing a user if logged in-
+1.create base.html so that we can extend in other files
+
+Logout a user-
+1.Always remember if user direct hit the browser then it should not logged out user so
+We will check 1st if request method is post then logout
+2.generate request from action method='post'
+
+login a user-
+1.similar to signup logic,we are showing django login page if request is get
+2.if user click on login button then post method will authenticate user and logged in user
+3.Basically we are using base template if user.is_authenticate
+
+Model creation-
+1.create class and add fields in models.
+2.migrate it
+3.We don't want to change value from admin panel also so
+make readonly_fields .
+
+Todo creation
+1.Make url entry
+2.make function with validation if request type
+3.create template html file
+4.Now we want to capture data from external end user so we need a form.Till now 
+we were using django created form like authenticationform,signup form
+5.create file forms.py
+6.create class TodoForm using django.forms ModelForm
+really helpful django here
+7.get all submitted data
+8.save that in db and redirect to currenttodos
+9.ValueError exception handled if someone inspect element and submit wrong data.
+
+Now show data from db to currenttodos-
+1.from .moodel import Todo
+2.todos=Todo.objects.all()
+here we want to fetch user specific data so
+3.use filter
+
+Now view and update todo-
+1.make url with int value
+2.create view function with todo_id
+3.fetch data using get_object_or_404(Todo,pk=todo_pk)
+4.pass this value to viewtodo.html
+5.Now we will create link of previous title and link them these view page
+
+complete and delete-
+1.
+if user is logged in then LOGIN_URL='login/' 
+
+For debug=True dev env
+we created just static/todo/home.jpg and load static and gave static path here image is showing
+but in production we need to execute collectstatic command and set static_root also.
+STATIC_ROOT = os.path.join(PROJECT_DIR,'static')
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+                os.path.join(PROJECT_DIR,'staticfiles'), # if your static files folder is named "staticfiles"
+)
+TEMPLATE_DIRS = (
+                os.path.join(PROJECT_DIR,'template'), # if your static files folder is named "template"
+)

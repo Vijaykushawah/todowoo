@@ -1,0 +1,34 @@
+{% extends 'todo/base.html' %}
+
+{% block content %}
+<div class="overlay">
+  <div clss="container">
+    <h1 class="text-primary">Take Action:-</h1>
+    <div class="row justify-content-center">
+        <div class="col-8">
+<p class="bg-success">{{todo.title}}</p>
+
+{% if error %}
+<h2 class="p-3 mb-2 bg-warning text-white">{{error}}</h2>
+{% endif %}
+<table cellpadding="1" cellspacing="2">
+<form method="POST">
+  {% csrf_token %}
+{{form.as_p}}
+
+<tr><td>
+<button type="submit" class="btn btn-success">Update</button></td>
+</form>
+
+<form method="POST" action="{% url 'completetodo' todo.id %}">
+  {% csrf_token %}
+  <td>
+<button type="submit" class="btn btn-success">Complete</button></td>
+</form>
+
+<form method="POST" action="{% url 'deletetodo' todo.id %}">
+  {% csrf_token %}
+<td><button type="submit" class="btn btn-success">Delete</button></td>
+</form></table>
+</div></div></div></div>
+{% endblock %}
