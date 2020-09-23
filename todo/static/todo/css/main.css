@@ -2,7 +2,7 @@
 body{background:#FFFFF0;}
   {% load static %}
 
-.content{min-height:560;position:relative;}
+.content{min-height:100%;position:relative;}
 .nav-link , .navbar-brand{ color: #f4f4f4; cursor: pointer;}
 
 .nav-link{ margin-right: 1em !important;}
