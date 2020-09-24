@@ -24,3 +24,11 @@ class Contact(models.Model):
     contact_name = models.CharField(max_length=100,default="name")
     contact_email = models.EmailField(blank=True)
     contact_content = models.TextField(blank=True)
+
+class MyProfile(models.Model):
+    username = models.CharField(max_length=100,default="username")
+    lead= models.CharField(max_length=100,null=True,blank=True)
+    associate= models.CharField(max_length=100,null=True,blank=True)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    def __str__(self):
+        return self.username

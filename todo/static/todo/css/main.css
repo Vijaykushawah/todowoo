@@ -110,4 +110,11 @@ body{background:#FFFFF0;}
 
 }
 .resetcss{all:unset;}
+
+.list-group{
+    max-height: 300px;
+    margin-bottom: 10px;
+    overflow:scroll;
+    -webkit-overflow-scrolling: touch;
+}
 /* .fa{font-size:33px;} */

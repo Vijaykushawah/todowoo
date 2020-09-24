@@ -36,4 +36,7 @@ urlpatterns = [
     path('about/',views.abouttodo,name='abouttodo'),
     path('portfolio/',views.portfoliotodo,name='portfoliotodo'),
     path('contact/',views.contacttodo,name='contacttodo'),
+    path('myprofile/',views.myprofiletodo,name='myprofiletodo'),
+    path('removeassociate/',views.removeassociatetodo,name='removeassociatetodo'),
+    path('getassociatestatus/<str:associateusername>',views.getassociatestatustodo,name='getassociatestatustodo'),
 ]

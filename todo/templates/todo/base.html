@@ -14,8 +14,15 @@
    $('#MyPopup').modal('hide');
 
    }
+   function CheckChecked1()
+   {
+
+   $('#mainform').action="removeassociatetodo";
+alert('hello')
+   }
 
  </script>
+
 {% load static %}
 
   <link rel="icon" type="image/png" href="{% static 'todo/todo.png' %}" sizes="96x96">
@@ -41,7 +48,7 @@
    <a class="nav-link " data-value="team" href="{% url 'currenttodos' %}">Current</a>       </li>
 <li class="nav-item">
  <a class="nav-link " data-value="contact" href="{% url 'completedtodos' %}">Completed</a>       </li>
-  <li class="nav-item "><a class="nav-link " data-value="blog" href="#">Hello {{user.username}}</a></li>
+  <li class="nav-item "><a class="nav-link " data-value="blog" href="{% url 'myprofiletodo' %}">Hello {{user.username}}</a></li>
  <li class="nav-item">
   <a class="nav-link " data-value="contact" href="{% url 'completedtodos' %}"><form  action="{% url 'logoutuser' %}" method="POST">
     {% csrf_token %}

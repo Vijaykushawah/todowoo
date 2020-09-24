@@ -1,0 +1,49 @@
+{% extends 'todo/base.html' %}
+
+{% block content %}
+<div class="overlay">
+  <div class="container">
+        <div class="row justify-content-center">
+
+
+          <div class="toggle"> {% include 'todo/modelpopuptodo.html' %} </div>
+          <div class="row">
+            {% if error %}  <h2 class="p-3 mb-2 bg-light text-danger">{{error}}</h2>
+            {% endif %}
+    <div class="col col-lg-6 text-center mx-auto ">
+            <h1 class="mt-2 text-dark font-weight-bold">Current Status</h1>
+
+
+<ol class="list-group">
+  {%  for todo in currentwork %}
+  <a href="{% url 'viewtodo' todo.id %}">
+  <li class="list-group-item list-group-item-action">{% if todo.important %}<b>{% endif %}{{todo.title}}{% if todo.important %}</b>{% endif %}
+    </a>
+  {% if todo.memo %}
+  -{{todo.memo}}
+  {% endif %}
+  </li>
+  {% endfor %}
+  </ol>
+  </div>
+  <div class="col-md-6  text-center mx-auto ">
+
+  <h1 class="mt-2 text-dark font-weight-bold">Completed Work</h1>
+<ol class="list-group">
+  {%  for todo in completedwork %}
+
+  <li class="list-group-item list-group-item-action">{% if todo.important %}<span class="text-danger">{% endif %}<span class="bg-gradient-success font-weight-bold">{{todo.title}}</span>
+    {% if todo.important %}</span>{% endif %}
+
+  {% if todo.memo %}
+  -<span class="text-info">{{todo.memo}}</span>
+  {% endif %}
+  </li>
+<span class="text-secondary">Completed at:
+  <span class="text-danger">{{ todo.datecompleted|date:'M j Y H:i' }}</span>
+</span>
+  {% endfor %}
+  </ol></div>
+</div></div>
+  </div></div></div>
+{% endblock %}

@@ -1,10 +1,10 @@
-from django.shortcuts import render,redirect,get_object_or_404
+from django.shortcuts import render,redirect,get_object_or_404,get_list_or_404
 from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login,logout,authenticate
-from .forms import TodoForm,ContactForm
-from .models import Todo,Contact
+from .forms import TodoForm,ContactForm,MyProfileForm
+from .models import Todo,Contact,MyProfile
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 import re
@@ -25,6 +25,7 @@ def signupuser(request):
                 return render(request,'todo/signupuser.html',{'form':UserCreationForm(),'error':"Passowrd must conain atlease 1 small letter"})
             elif not re.findall('[()[\]{}|\\`~!@#$%^&*_\-+=;:\'",<>./?]',request.POST['password1']):
                 return render(request,'todo/signupuser.html',{'form':UserCreationForm(),'error':"Passowrd must conain atlease 1 special character"})
+
 
 
 
@@ -66,6 +67,159 @@ def viewtodo(request,todo_pk):
             return redirect(currenttodos)
         except ValueError:
             return render(request,'todo/viewtodo.html',{'todo':todo,'form':form,'error':"Bad info passed.Please try again."})
+
+@login_required
+def getassociatestatustodo(request,associateusername):
+    try:
+        get_list_or_404(MyProfile,user=request.user,associate=associateusername,username=request.user.username)
+    except:
+        currentwork=[]
+        completedwork=[]
+        return render(request,'todo/getassociatestatustodo.html',{'currentwork':currentwork,'completedwork':completedwork,'error':"Sorry, selected user is not your associate!!"})
+    associate=get_object_or_404(User,username=associateusername)
+    currentwork=Todo.objects.filter(user=associate,datecompleted__isnull=True)
+    completedwork=Todo.objects.filter(user=associate,datecompleted__isnull=False).order_by('-datecompleted')
+    return render(request,'todo/getassociatestatustodo.html',{'currentwork':currentwork,'completedwork':completedwork})
+
+
+@login_required
+def myprofiletodo(request):
+    user = request.user
+    if request.method == 'GET':
+        try:
+            myprofiles=get_list_or_404(MyProfile,user=request.user)
+            try:
+                leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+            except:
+                leadprofiles=[]
+            try:
+                associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+            except:
+                associateprofiles=[]
+        except:
+            leadprofiles=[]
+            associateprofiles=[]
+            myprofiles=[]
+        form =  MyProfileForm()
+        return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form})
+    else:
+        try:
+            lead=get_object_or_404(User,pk=request.POST['user']).username
+            try:
+                get_list_or_404(MyProfile,lead=lead,user=request.user,username=request.user.username)
+
+                notduplicateuser=True
+            except:
+                notduplicateuser=False
+            if   notduplicateuser:
+                form=MyProfileForm(request.POST)
+
+                try:
+                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    try:
+                        leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                    except:
+                        leadprofiles=[]
+                    try:
+                        associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                    except:
+                        associateprofiles=[]
+                except:
+                    myprofiles =[]
+                return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected User is already your lead!!"})
+            form=MyProfileForm(request.POST)
+            form2=MyProfileForm(request.POST)
+            newtodo = form.save(commit=False)
+            newtodo.user = user
+            newtodo.username=user.username
+            newtodo.lead=lead
+            newtodo.save()
+
+            newtodo2 = form2.save(commit=False)
+            newtodo2.user = get_object_or_404(User,pk=request.POST['user'])
+            newtodo2.username=lead
+            newtodo2.associate=user.username
+            newtodo2.save()
+            try:
+                myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                try:
+                    leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                except:
+                    leadprofiles=[]
+                try:
+                    associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                except:
+                    associateprofiles=[]
+            except:
+                myprofiles =[]
+            return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'success':"User added successfuly"})
+        except ValueError:
+            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Bad info passed.Please try again."})
+
+
+@login_required
+def removeassociatetodo(request):
+    user = request.user
+    if request.method == 'GET':
+        try:
+            myprofiles=get_list_or_404(MyProfile,user=request.user)
+            try:
+                leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+            except:
+                leadprofiles=[]
+            try:
+                associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+            except:
+                associateprofiles=[]
+        except:
+            leadprofiles=[]
+            associateprofiles=[]
+            myprofiles=[]
+        form =  MyProfileForm()
+        return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form})
+    else:
+        try:
+            associate=get_object_or_404(User,pk=request.POST['user'])
+            myprofiles =get_list_or_404(MyProfile,user=request.user)
+            try:
+                form =  MyProfileForm()
+                associatedelete=[]
+                associatedelete=get_object_or_404(MyProfile,associate__isnull=False,associate=associate.username,username=request.user.username,user=request.user)
+                associatedelete.delete()
+                try:
+                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    try:
+                        leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                    except:
+                        leadprofiles=[]
+                    try:
+                        associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                    except:
+                        associateprofiles=[]
+                except:
+                    myprofiles =[]
+
+                return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'success':"Associate deleted successfuly"})
+            except:
+                try:
+                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    try:
+                        leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                    except:
+                        leadprofiles=[]
+                    try:
+                        associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                    except:
+                        associateprofiles=[]
+                except:
+                    myprofiles =[]
+                return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected user is not your associate !"})
+        except ValueError:
+            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'form':form,'error':"Bad info passed.Please try again."})
+
+
+
+
 
 @login_required
 def completetodo(request,todo_pk):

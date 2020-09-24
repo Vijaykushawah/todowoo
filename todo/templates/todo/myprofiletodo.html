@@ -1,0 +1,75 @@
+{% extends 'todo/base.html' %}
+
+{% block content %}
+<div class="overlay">
+  <div clss="container">
+    <h3 class="text-info">Add or remove User-</h3>
+    <div class="row justify-content-center">
+        <div class="col-8">
+
+
+          <!-- <p class="bg-light">{{myprofiles}}</p> -->
+
+          {% if error %}
+          <h2 class="p-3 mb-2 bg-warning text-white">{{error}}</h2>
+          {% endif %}
+          {% if success %}
+          <h2 class="p-3 mb-2 bg-success text-white">{{success}}</h2>
+          {% endif %}
+          <table cellpadding="1" cellspacing="2">
+          <form method="POST" id="mainform" name="mainform">
+            {% csrf_token %}
+          {{form.as_p}}
+
+          <tr><td>
+          <button type="submit" class="btn btn-success" onclick='this.form.action="{% url 'myprofiletodo' %}";'>Add as Lead</button></td>
+
+
+
+            {% csrf_token %}
+            <td>
+          <button type="submit" class="btn btn-success" id="btnSubmit1" onclick='this.form.action="{% url 'removeassociatetodo' %}";'>Remove as Associate</button></td>
+
+
+</form>
+          </table>
+
+<div style="">  <br><br>
+
+<div class="row">
+<h5 class="font-weight-bold text-uppercase mb-4">My Leads({{ leadprofiles|length }})</h5><p>
+  <ol class="list-group customelistgroup" style="max-height: 300px;
+    margin-bottom: 10px;
+    overflow:scroll;
+    -webkit-overflow-scrolling: touch;">
+    {%  for profile  in leadprofiles %}
+    <a class=" list-group-item-action " href="">
+    <li class="list-group-item list-group-item-action">{{profile.lead}}
+      </a>
+    </li>
+    {% endfor %}
+    </ol>
+
+<h5 class="font-weight-bold text-uppercase mb-4">My Associates({{ associateprofiles|length }})</h5><p>
+  <ol class="list-group customelistgroup " style="max-height: 300px;
+    margin-bottom: 10px;
+    overflow:scroll;
+    -webkit-overflow-scrolling: touch;">
+      {%  for associate  in associateprofiles %}
+      <a  class=" list-group-item-action " href="{% url 'getassociatestatustodo' associate.associate %}">
+      <li class="list-group-item list-group-item-action">{{associate.associate}}
+
+        </a>
+      </li>
+      {% endfor %}
+      </ol>
+</div>
+          </div>
+
+        <p class="text-info">  User can make another user as Lead to me to  give  privilages.Lead can view,edit Memo of  his/her associates as well.Only leads can remove
+           associates
+          from his/her team.Associate has rights to select his/her lead.<p>
+
+</div></div></div></div>
+
+{% endblock %}
