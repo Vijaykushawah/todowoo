@@ -4,7 +4,7 @@
 <div class="overlay">
 <div class="container">
       <div class="row justify-content-center">
-        <div class="col-8">
+        <div class="col-8">  <div class="toggle"> {% include 'todo/modelpopuptodo.html' %} </div>
 <h1 class="text-primary">Contact Form:</h1>
 {% if contact %}
 <h2 class="p-3 mb-2 bg-success text-white">{{contact.contact_name}} has sent message({{contact.contact_content}}) to us Successfully.</h2>{% endif %}
