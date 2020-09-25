@@ -39,4 +39,10 @@ urlpatterns = [
     path('myprofile/',views.myprofiletodo,name='myprofiletodo'),
     path('removeassociate/',views.removeassociatetodo,name='removeassociatetodo'),
     path('getassociatestatus/<str:associateusername>',views.getassociatestatustodo,name='getassociatestatustodo'),
+    path('exportdata/',views.exportdatatodo,name='exportdatatodo'),
+    path('exportexceldata/',views.exportexceldatatodo,name='exportexceldatatodo'),
+    path('exportcompledata/',views.exportcompledatatodo,name='exportcompledatatodo'),
+    path('exportexcelcompledata/',views.exportexcelcompledatatodo,name='exportexcelcompledatatodo'),
+    path('exportassociatedata/',views.exportassociatedatatodo,name='exportassociatedatatodo'),
+
 ]

@@ -84,3 +84,6 @@ STATICFILES_DIRS = (
 TEMPLATE_DIRS = (
                 os.path.join(PROJECT_DIR,'template'), # if your static files folder is named "template"
 )
+
+
+pip install xlwt

@@ -8,7 +8,11 @@ from .models import Todo,Contact,MyProfile
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 import re
+import csv,logging,xlwt
+
+from django.http import HttpResponse
 # Create your views here.
+logger = logging.getLogger(__name__)
 def signupuser(request):
     if request.method == 'GET':
         return render(request,'todo/signupuser.html',{'form':UserCreationForm()})
@@ -80,6 +84,89 @@ def getassociatestatustodo(request,associateusername):
     currentwork=Todo.objects.filter(user=associate,datecompleted__isnull=True)
     completedwork=Todo.objects.filter(user=associate,datecompleted__isnull=False).order_by('-datecompleted')
     return render(request,'todo/getassociatestatustodo.html',{'currentwork':currentwork,'completedwork':completedwork})
+
+@login_required
+def exportdatatodo(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}{}.csv"'.format(request.user.username,"_currentwork")
+    todos = Todo.objects.filter(user=request.user,datecompleted__isnull=True)
+    writer = csv.writer(response)
+    writer.writerow(['Title', 'Memo', 'Created', 'Datecompleted','Createdby','isImportant'])
+    for row in todos:
+        writer.writerow([row.title,row.memo,row.created,row.datecompleted,row.user.username,row.important,])
+    return response
+
+@login_required
+def exportexceldatatodo(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="{}{}.xls"'.format(request.user.username,"_currentwork")
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('CurrentWork')
+
+    # Sheet header, first row
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns=['Title', 'Memo', 'isImportant']
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+    # Sheet body, remaining rows
+    font_style = xlwt.XFStyle()
+    todos = Todo.objects.filter(user=request.user,datecompleted__isnull=True).values_list('title','memo','important')
+    for row in todos:
+        row_num += 1
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, row[col_num], font_style)
+
+    wb.save(response)
+    return response
+
+@login_required
+def exportcompledatatodo(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}{}.csv"'.format(request.user.username,"_completedWork")
+    todos = Todo.objects.filter(user=request.user,datecompleted__isnull=False)
+    writer = csv.writer(response)
+    writer.writerow(['Title', 'Memo', 'Created', 'Datecompleted','Createdby','isImportant'])
+    for row in todos:
+        writer.writerow([row.title,row.memo,row.created,row.datecompleted,row.user.username,row.important,])
+    return response
+
+@login_required
+def exportexcelcompledatatodo(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="{}{}.xls"'.format(request.user.username,"_completedWork")
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('CompletedWork')
+
+    # Sheet header, first row
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns=['Title', 'Memo', 'isImportant']
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+    # Sheet body, remaining rows
+    font_style = xlwt.XFStyle()
+    todos = Todo.objects.filter(user=request.user,datecompleted__isnull=False).values_list('title','memo','important')
+    for row in todos:
+        row_num += 1
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, row[col_num], font_style)
+
+    wb.save(response)
+    return response
+
+
+
+
+
+
+
 
 
 @login_required
@@ -180,12 +267,17 @@ def removeassociatetodo(request):
     else:
         try:
             associate=get_object_or_404(User,pk=request.POST['user'])
+            logger.error(associate.username)
             myprofiles =get_list_or_404(MyProfile,user=request.user)
             try:
                 form =  MyProfileForm()
                 associatedelete=[]
-                associatedelete=get_object_or_404(MyProfile,associate__isnull=False,associate=associate.username,username=request.user.username,user=request.user)
-                associatedelete.delete()
+                logger.error("before delete")
+                #associatedelete=get_object_or_404(MyProfile,associate=associate.username,username=request.user.username,user=request.user)
+                associatedelete=get_list_or_404(MyProfile,user=request.user,associate=associate.username,username=request.user.username)
+                logger.error("after delete")
+                logger.error(associatedelete)
+                associatedelete[0].delete()
                 try:
                     myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
                     try:
@@ -214,8 +306,72 @@ def removeassociatetodo(request):
                 except:
                     myprofiles =[]
                 return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected user is not your associate !"})
-        except ValueError:
-            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'form':form,'error':"Bad info passed.Please try again."})
+        except:
+            myprofiles =[]
+            form =  MyProfileForm()
+            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'form':form,'error':"Bad info passed or no user mapped .Please try again."})
+
+@login_required
+def exportassociatedatatodo(request):
+    user = request.user
+    if request.method == 'GET':
+        try:
+            myprofiles=get_list_or_404(MyProfile,user=request.user)
+            try:
+                leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+            except:
+                leadprofiles=[]
+            try:
+                associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+            except:
+                associateprofiles=[]
+        except:
+            leadprofiles=[]
+            associateprofiles=[]
+            myprofiles=[]
+        form =  MyProfileForm()
+        return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form})
+    else:
+        try:
+            associate=get_object_or_404(User,pk=request.POST['user'])
+            logger.error(associate.username)
+            myprofiles =get_list_or_404(MyProfile,user=request.user)
+            try:
+                form =  MyProfileForm()
+                associatedelete=[]
+                logger.error("associate before")
+                associatedeletes=get_list_or_404(MyProfile,user=request.user,associate=associate.username,username=request.user.username)
+                associatedelete=associatedeletes[0]
+                logger.error(associatedelete)
+                response = HttpResponse(content_type='text/csv')
+                response['Content-Disposition'] = 'attachment; filename="{}{}.csv"'.format(associatedelete.user.username,"_completedWork")
+                todos = Todo.objects.filter(user=associatedelete.user)
+                writer = csv.writer(response)
+                writer.writerow(['Title', 'Memo', 'Created', 'Datecompleted','Createdby','isImportant'])
+                for row in todos:
+                    writer.writerow([row.title,row.memo,row.created,row.datecompleted,row.user.username,row.important,])
+                return response
+            except:
+                try:
+                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    try:
+                        leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                    except:
+                        leadprofiles=[]
+                    try:
+                        associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                    except:
+                        associateprofiles=[]
+                except:
+                    myprofiles =[]
+                return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected user is not your associate !"})
+        except:
+            myprofiles =[]
+            form =  MyProfileForm()
+            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'form':form,'error':"Bad info passed or no user mapped .Please try again."})
+
+
+
 
 
 

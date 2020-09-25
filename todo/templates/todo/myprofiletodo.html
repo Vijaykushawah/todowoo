@@ -29,6 +29,9 @@
             {% csrf_token %}
             <td>
           <button type="submit" class="btn btn-success" id="btnSubmit1" onclick='this.form.action="{% url 'removeassociatetodo' %}";'>Remove as Associate</button></td>
+          {% csrf_token %}
+          <td>
+          <button type="submit" class="btn btn-success" id="btnSubmit1" onclick='this.form.action="{% url 'exportassociatedatatodo' %}";'>Get your Associate Data</button></td>
 
 
 </form>

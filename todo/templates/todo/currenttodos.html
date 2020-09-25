@@ -21,5 +21,8 @@
   </li>
   {% endfor %}
   </ol>
+   <button class="btn btn-outline-secondary btn-lg bg-info "><a target="_blank" style="text-decoration:none;color:#ffffff;" href="{% url 'exportdatatodo' %}">Export CSV</a></button>
+   <button class="btn btn-outline-secondary btn-lg bg-info "><a target="_blank" style="text-decoration:none;color:#ffffff;" href="{% url 'exportexceldatatodo' %}">Export EXCEL</a></button>
+
   </div></div></div></div>
 {% endblock %}
