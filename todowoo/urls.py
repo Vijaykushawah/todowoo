@@ -44,5 +44,7 @@ urlpatterns = [
     path('exportcompledata/',views.exportcompledatatodo,name='exportcompledatatodo'),
     path('exportexcelcompledata/',views.exportexcelcompledatatodo,name='exportexcelcompledatatodo'),
     path('exportassociatedata/',views.exportassociatedatatodo,name='exportassociatedatatodo'),
+    path('translator/',views.translatortodo,name='translatortodo'),
+    path('translate/',views.translatetodo,name='translatetodo'),
 
 ]

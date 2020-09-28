@@ -7,23 +7,107 @@
  <meta http-equiv="X-UA-Compatible" content="IE=edge">
  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
- <script>
+{% load static %}
+<script type="text/javascript" scr="{% static 'todo/js/main.js' %}">
+</script><script>
    function CheckChecked()
    {
 
    $('#MyPopup').modal('hide');
 
    }
-   function CheckChecked1()
+  $(document).ready(function(){
+  $("select.fromlangselect,select.tolangselect,textarea#fromlangtext").change(function(){
+    var fromlangval = $(this).children("option:selected").val();
+    var tolangval = $("select.tolangselect").children("option:selected").val();
+    var lefttext=$('textarea#fromlangtext').val();
+    var righttext=$('textarea#tolangtext').val();
+$.ajax({
+url:'{% url 'translatetodo' %}',
+type:'POST',
+dataType: 'json',
+data:{
+    'fromlangval':fromlangval,
+    'tolangval':tolangval,
+    'lefttext':lefttext,
+    'resulttype':'actualtext',
+    'righttext':righttext,
+    'csrfmiddlewaretoken': '{{ csrf_token }}'
+  },
+  success: function( data )
    {
+         $('textarea#tolangtext').val(data.result);
+         $('.detectedlang').val(data.langdetected);
 
-   $('#mainform').action="removeassociatetodo";
-alert('hello')
+       }
+});
+  });
+ // alert('jquery supported')
+  });
+$(document).ready(function(){
+  $('.convertlang,.getpronunciation').click(function(){
+    var fromlangval = $("select.fromlangselect").children("option:selected").val();
+    var tolangval = $("select.tolangselect").children("option:selected").val();
+    var lefttext=$('textarea#fromlangtext').val();
+    var righttext=$('textarea#tolangtext').val();
+    var check=$(this).attr('id');
+    if (check == 'convertlang'){
+      var resulttype='actualtext';
+    }else{
+      var resulttype='pronunciation';
    }
 
+  $.ajax({
+  url:'{% url 'translatetodo' %}',
+  type:'POST',
+  dataType: 'json',
+  data:{
+    'fromlangval':fromlangval,
+    'tolangval':tolangval,
+    'lefttext':lefttext,
+    'resulttype':resulttype,
+    'righttext':righttext,
+    'csrfmiddlewaretoken': '{{ csrf_token }}'
+  },
+  success: function( data )
+       {
+         $('textarea#tolangtext').val(data.result);
+         $('.detectedlang').val(data.langdetected);
+       }
+  });
+});
+});
+$(document).ready(function(){
+  $("textarea#fromlangtext").on('change keyup paste', function() {
+    var fromlangval = $("select.fromlangselect").children("option:selected").val();
+    var tolangval = $("select.tolangselect").children("option:selected").val();
+    var lefttext=$('textarea#fromlangtext').val();
+    var righttext=$('textarea#tolangtext').val();
+    var resulttype='actualtext';
+  $.ajax({
+  url:'{% url 'translatetodo' %}',
+  type:'POST',
+  dataType: 'json',
+  data:{
+    'fromlangval':fromlangval,
+    'tolangval':tolangval,
+    'lefttext':lefttext,
+    'resulttype':resulttype,
+    'righttext':righttext,
+    'csrfmiddlewaretoken': '{{ csrf_token }}'
+  },
+  success: function( data )
+       {
+         $('textarea#tolangtext').val(data.result);
+         $('.detectedlang').html(data.langdetected);
+       }
+  });
+  });
+
+});
  </script>
 
-{% load static %}
+
 
   <link rel="icon" type="image/png" href="{% static 'todo/todo.png' %}" sizes="96x96">
  <link rel="stylesheet" type="text/css" href="{% static 'todo/css/main.css' %}">
@@ -40,6 +124,13 @@ alert('hello')
 <li class="nav-item">
     <a class="nav-link " data-value="portfolio"href="{% url 'portfoliotodo' %}">Portfolio</a>
  </li>
+ <li class="nav-item dropdown">
+     <a class="nav-link dropdown-toggle" data-toggle="dropdown" data-value="portfolio" href="#">Tools</a>
+     <ul class="dropdown-menu">
+                    <a href="{% url 'translatortodo' %}" class="dropdown-item">Translator</a>
+                  <a href="#" class="dropdown-item">Coming Soon</a>
+                </ul>
+  </li>
 
  {% if user.is_authenticated %}
  <li class="nav-item">

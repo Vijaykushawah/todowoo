@@ -7,10 +7,12 @@ from .forms import TodoForm,ContactForm,MyProfileForm
 from .models import Todo,Contact,MyProfile
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 import re
-import csv,logging,xlwt
+import csv,logging,xlwt,googletrans
 
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
+from googletrans import Translator
 # Create your views here.
 logger = logging.getLogger(__name__)
 def signupuser(request):
@@ -166,9 +168,6 @@ def exportexcelcompledatatodo(request):
 
 
 
-
-
-
 @login_required
 def myprofiletodo(request):
     user = request.user
@@ -190,19 +189,29 @@ def myprofiletodo(request):
         form =  MyProfileForm()
         return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form})
     else:
+        lead=get_object_or_404(User,pk=request.POST['user'])
         try:
-            lead=get_object_or_404(User,pk=request.POST['user']).username
             try:
-                get_list_or_404(MyProfile,lead=lead,user=request.user,username=request.user.username)
-
-                notduplicateuser=True
-            except:
+                get_list_or_404(MyProfile,user=request.user,username=request.user.username,lead=lead.username)
+                error="Selected User is already your lead!!"
                 notduplicateuser=False
-            if   notduplicateuser:
-                form=MyProfileForm(request.POST)
+            except:
+                notduplicateuser=True
+            try:
+                #get_list_or_404(MyProfile,user=lead,username=lead.username,associate=request.user.username)
+                get_list_or_404(MyProfile,user=request.user,username=request.user.username,associate=lead.username)
+                error="Selected user is your associate!!"
+                notduplicateuser=False
+            except:
+                logger.error('do nothing')
+            if request.user == lead:
+                error="You can't add yourself as a lead!!"
+                notduplicateuser=False
 
+            if  not (notduplicateuser):
+                form=MyProfileForm(request.POST)
                 try:
-                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    myprofiles=get_list_or_404(MyProfile,user=request.user)
                     try:
                         leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
                     except:
@@ -213,22 +222,24 @@ def myprofiletodo(request):
                         associateprofiles=[]
                 except:
                     myprofiles =[]
-                return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected User is already your lead!!"})
+                    leadprofiles=[]
+                    associateprofiles=[]
+                return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':error})
             form=MyProfileForm(request.POST)
             form2=MyProfileForm(request.POST)
             newtodo = form.save(commit=False)
             newtodo.user = user
             newtodo.username=user.username
-            newtodo.lead=lead
+            newtodo.lead=lead.username
             newtodo.save()
 
             newtodo2 = form2.save(commit=False)
-            newtodo2.user = get_object_or_404(User,pk=request.POST['user'])
-            newtodo2.username=lead
-            newtodo2.associate=user.username
+            newtodo2.user = lead
+            newtodo2.username=lead.username
+            newtodo2.associate=request.user.username
             newtodo2.save()
             try:
-                myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                myprofiles=get_list_or_404(MyProfile,user=request.user)
                 try:
                     leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
                 except:
@@ -239,6 +250,8 @@ def myprofiletodo(request):
                     associateprofiles=[]
             except:
                 myprofiles =[]
+                associateprofiles=[]
+                leadprofiles=[]
             return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'success':"User added successfuly"})
         except ValueError:
             return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Bad info passed.Please try again."})
@@ -267,19 +280,17 @@ def removeassociatetodo(request):
     else:
         try:
             associate=get_object_or_404(User,pk=request.POST['user'])
-            logger.error(associate.username)
-            myprofiles =get_list_or_404(MyProfile,user=request.user)
+            myprofiles =get_list_or_404(MyProfile,user=request.user,associate=associate.username)
             try:
                 form =  MyProfileForm()
                 associatedelete=[]
-                logger.error("before delete")
                 #associatedelete=get_object_or_404(MyProfile,associate=associate.username,username=request.user.username,user=request.user)
                 associatedelete=get_list_or_404(MyProfile,user=request.user,associate=associate.username,username=request.user.username)
-                logger.error("after delete")
-                logger.error(associatedelete)
+                associateleaddelete=get_list_or_404(MyProfile,user=associate,lead=request.user.username,username=associate.username)
                 associatedelete[0].delete()
+                associateleaddelete[0].delete()
                 try:
-                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    myprofiles=get_list_or_404(MyProfile,user=request.user)
                     try:
                         leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
                     except:
@@ -290,11 +301,13 @@ def removeassociatetodo(request):
                         associateprofiles=[]
                 except:
                     myprofiles =[]
+                    leadprofiles=[]
+                    associateprofiles=[]
 
                 return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'success':"Associate deleted successfuly"})
             except:
                 try:
-                    myprofiles =myprofiles=get_list_or_404(MyProfile,user=request.user)
+                    myprofiles=get_list_or_404(MyProfile,user=request.user)
                     try:
                         leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
                     except:
@@ -305,11 +318,26 @@ def removeassociatetodo(request):
                         associateprofiles=[]
                 except:
                     myprofiles =[]
-                return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected user is not your associate !"})
+                    associateprofiles=[]
+                    leadprofiles=[]
+                return  render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Some error occoured during delettion !"})
         except:
-            myprofiles =[]
+            try:
+                myprofiles=get_list_or_404(MyProfile,user=request.user)
+                try:
+                    leadprofiles=get_list_or_404(MyProfile,lead__isnull=False,user=request.user)
+                except:
+                    leadprofiles=[]
+                try:
+                    associateprofiles=get_list_or_404(MyProfile,associate__isnull=False,user=request.user)
+                except:
+                    associateprofiles=[]
+            except:
+                myprofiles =[]
+                leadprofiles=[]
+                associateprofiles=[]
             form =  MyProfileForm()
-            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'form':form,'error':"Bad info passed or no user mapped .Please try again."})
+            return render(request,'todo/myprofiletodo.html',{'myprofiles':myprofiles,'leadprofiles':leadprofiles,'associateprofiles':associateprofiles,'form':form,'error':"Selected user is not your associate!!"})
 
 @login_required
 def exportassociatedatatodo(request):
@@ -334,15 +362,12 @@ def exportassociatedatatodo(request):
     else:
         try:
             associate=get_object_or_404(User,pk=request.POST['user'])
-            logger.error(associate.username)
             myprofiles =get_list_or_404(MyProfile,user=request.user)
             try:
                 form =  MyProfileForm()
                 associatedelete=[]
-                logger.error("associate before")
                 associatedeletes=get_list_or_404(MyProfile,user=request.user,associate=associate.username,username=request.user.username)
                 associatedelete=associatedeletes[0]
-                logger.error(associatedelete)
                 response = HttpResponse(content_type='text/csv')
                 response['Content-Disposition'] = 'attachment; filename="{}{}.csv"'.format(associatedelete.user.username,"_completedWork")
                 todos = Todo.objects.filter(user=associatedelete.user)
@@ -457,3 +482,33 @@ def createtodo(request):
             return redirect(currenttodos)
         except ValueError:
             return render(request,'todo/createtodo.html',{'form':TodoForm(),'error':"Bad data Passed! Try again."})
+
+@login_required
+def translatortodo(request):
+    translator = Translator()
+    available_langugages=googletrans.LANGUAGES
+    if request.method == 'POST':
+        return render(request,'todo/translatortodo.html',{'available_langugages':available_langugages})
+    else:
+        return render(request,'todo/translatortodo.html',{'available_langugages':available_langugages})
+
+
+@csrf_protect
+def translatetodo(request):
+    fromlangval = request.POST['fromlangval']
+    tolangval = request.POST['tolangval']
+    lefttext = request.POST['lefttext']
+    righttext = request.POST['righttext']
+    resulttype = request.POST['resulttype']
+    translator = Translator()
+    #result = translator.translate(lefttext,src='en',dest=tolangval)
+    langsrc = fromlangval
+    langdetected = translator.detect(lefttext)
+    if(langdetected.lang != fromlangval):
+        langsrc=langdetected.lang
+    result = translator.translate(lefttext, src=langsrc, dest=tolangval)
+
+    if(resulttype == 'pronunciation'):
+        return JsonResponse({'result':result.pronunciation,'langdetected':langdetected.lang})
+    else:
+        return JsonResponse({'result':result.text,'langdetected':langdetected.lang})
