@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import Todo,Contact,MyProfile
+from .models import Todo,Contact,MyProfile,SendMultiMail
 
 
 class TodoForm(ModelForm):
@@ -16,3 +16,7 @@ class MyProfileForm(ModelForm):
     class Meta:
         model=MyProfile
         fields = {'user'}
+class SendMultiMailForm(ModelForm):
+    class Meta:
+        model=SendMultiMail
+        fields = {'receivers','subject','sender','body'}

@@ -32,3 +32,10 @@ class MyProfile(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     def __str__(self):
         return self.username
+class SendMultiMail(models.Model):
+    sender= models.EmailField(blank=True)
+    receivers = models.TextField(max_length=200,blank=True)
+    subject = models.TextField(max_length=200,blank=True)
+    body =  models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    schedule = models.DateTimeField(null=True)

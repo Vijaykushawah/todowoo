@@ -3,8 +3,8 @@ from django.contrib.auth.forms import UserCreationForm,AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login,logout,authenticate
-from .forms import TodoForm,ContactForm,MyProfileForm
-from .models import Todo,Contact,MyProfile
+from .forms import TodoForm,ContactForm,MyProfileForm,SendMultiMailForm
+from .models import Todo,Contact,MyProfile,SendMultiMail
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
@@ -13,6 +13,9 @@ import csv,logging,xlwt,googletrans
 
 from django.http import HttpResponse,JsonResponse
 from googletrans import Translator
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 # Create your views here.
 logger = logging.getLogger(__name__)
 def signupuser(request):
@@ -444,7 +447,72 @@ def loginuser(request):
 def home(request):
     return render(request,'todo/home.html')
 
+
+
+
+def sendmailtodo(request):
+    if request.method == 'GET':
+        form = SendMultiMailForm()
+        return render(request,'todo/sendmailtodo.html',{'form':form})
+    else:
+        error=None
+        msg = MIMEMultipart()
+        if bool(request.POST['pass']!='') & bool(request.POST['from'] != ''):
+            passw=request.POST['pass']
+            msg['From']=request.POST['from']
+        else:
+            msg['From']='stickymemonoreply@gmail.com'
+            passw="Sticky@#123"
+        msg['Subject']=request.POST['subject']
+        body=request.POST['body']
+        msg.attach(MIMEText(body, 'plain'))
+        tolist=list(request.POST['to'].split(','))
+        for to in tolist:
+            logger.error(to)
+            msg['To'] = to
+            message = msg.as_string()
+            s = smtplib.SMTP('smtp.gmail.com', 587)
+            s.starttls()
+            try:
+                s.login(msg['From'], passw)
+            except smtplib.SMTPAuthenticationError:
+                return render(request,'todo/sendmailtodo.html',{'error':'Email and password not accepted,Please enter correct details!'})
+            try:
+                s.sendmail(msg['From'], msg['To'], message)
+                msgdict={'sender':msg['From'],'receivers':msg['To'],'subject':msg['Subject'],'body':body}
+                form=SendMultiMailForm(data=msgdict)
+                form.save()
+                logger.error('till not error')
+                if form.is_valid():
+                    logger.error('saved in db')
+                    form.save()
+            except smtplib.SMTPRecipientsRefused:
+                return render(request,'todo/sendmailtodo.html',{'error':'Receiver mail field is empty!'})
+            logger.error("email sent")
+            s.quit()
+            # open the file to be sent
+            # filename = "File_name_with_extension"
+            # attachment = open("Path of the file", "rb")
+            #
+            # # instance of MIMEBase and named as p
+            # p = MIMEBase('application', 'octet-stream')
+            #
+            # # To change the payload into encoded form
+            # p.set_payload((attachment).read())
+            #
+            # # encode into base64
+            # encoders.encode_base64(p)
+            #
+            # p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+            #
+            # # attach the instance 'p' to instance 'msg'
+            # msg.attach(p)
+        return render(request,'todo/sendmailtodo.html',{'success':'success','error':error})
+
+
+
 def abouttodo(request):
+    logger.error(request.method)
     return render(request,'todo/abouttodo.html')
 def portfoliotodo(request):
     return render(request,'todo/portfoliotodo.html')

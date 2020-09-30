@@ -87,3 +87,28 @@ TEMPLATE_DIRS = (
 
 
 pip install xlwt
+STATIC_ROOT=  BASE_DIR / 'static'
+ALLOWED_HOSTS = ['vijaykushawah1.pythonanywhere.com']
+
+python manage.py shell
+from django.contrib.sites.models import Site
+sorted([(site.id,site.name) for site in Site.objects.all()])
+
+487332977276-fap1duuqgj2oqe6de1p639vemhvp5r21.apps.googleusercontent.com
+hsz-ZmCgcK1symEGWwPj-2Uu
+
+1.pip install django-allauth
+
+Add email
+views.py add function sendemailtodo
+modelpupuptodo entry of link
+sendemailtodo.html
+urls.py make entry to url
+
+models.py add class
+python manage.py makemigrations
+python manage.py migrate
+forms.py import model then create class
+admin.py import and register
+
+view.py import form model
