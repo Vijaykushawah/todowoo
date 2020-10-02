@@ -105,8 +105,47 @@ $(document).ready(function(){
   });
 
 });
- </script>
 
+
+$(document).ready(function(){
+  $('.crossdata').click(function(){
+    alert('button clicked');
+
+  $.ajax({
+  url:'http://vijaykushawah.pythonanywhere.com/getdemo',
+  type:'POST',
+  data:{
+    'demo':'demo1',
+    'csrfmiddlewaretoken': '{{ csrf_token }}'
+  },
+  crossDomain: true,
+  success: function( data )
+       {
+         data=JSON.parse(JSON.stringify(data));
+         alert('success');
+         console.log(data);
+         var html_to_append = '';
+         $('#img1').attr('src','http://vijaykushawah.pythonanywhere.com/media/portfolio/images/anony.PNG');
+         alert(data.status);
+       },
+  error: function( data )
+        {
+          alert('error');
+          alert(data);
+        }
+  });
+});
+});
+
+
+<!-- scroll button added -->
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+}
+ </script>
 
 
   <link rel="icon" type="image/png" href="{% static 'todo/todo.png' %}" sizes="96x96">
@@ -207,5 +246,27 @@ Logged in as {{user.username}}
 
 {% block content %}{% endblock %}
 </div>
+<style>.scrolltop1 {
+  display: block;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 15px;
+  border: none;
+  outline: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 2px;
+}
+
+.scrolltop1:hover {
+  background-color: #555;
+}</style>
+<button onclick="topFunction()" id="scrolltop1" class="scrolltop1 fa fa-chevron-up shape main-bg new-angle " title="Go to top"></button>
+<!--  Slider add -->
+
+
+{% include 'todo/slidershow2.html' %}
 
 {% include 'todo/footer.html' %}
